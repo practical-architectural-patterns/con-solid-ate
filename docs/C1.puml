@@ -1,0 +1,15 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title CRM Order Management System - Context Diagram
+
+Person(customer, "Customer", "Places orders and tracks them.")
+System_Ext(paymentGateway, "Payment Gateway", "Processes payment for orders.")
+System_Ext(supplierSystem, "Supplier System", "External supplier management system.")
+System(CRMSystem, "CRM Order Management System", "Manages customer orders and inventory.")
+
+Rel_D(customer, CRMSystem, "Places and tracks orders", $tags="sync")
+Rel_R(CRMSystem, paymentGateway, "Processes payment", $tags="sync")
+Rel_D(CRMSystem, supplierSystem, "Sends order details", $tags="sync")
+
+@enduml
