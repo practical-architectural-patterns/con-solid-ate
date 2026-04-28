@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(participant, "Participant")
+Person(operator, "Operator")
+Person(viewer, "Viewer")
+
+System_Boundary(consolidate, "conSOLIDate App") {
+    Container(spa, "Single Page App", "React.js", "Provides UI for all actors.")
+    Container(api, "API Application", "Spring Boot (Java)", "Handles business logic and authentication.")
+    ContainerDb(db, "Database", "PostgreSQL", "Stores user profiles and point ledger.")
+}
+
+Rel(participant, spa, "Uses", "HTTPS")
+Rel(operator, spa, "Uses", "HTTPS")
+Rel(viewer, spa, "Uses", "HTTPS")
+
+Rel(spa, api, "Makes API calls", "JSON/HTTPS")
+Rel(api, db, "Reads/Writes", "JDBC")
+@enduml
