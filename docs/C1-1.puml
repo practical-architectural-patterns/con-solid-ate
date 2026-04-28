@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Points Management System - Context Diagram
+
+Person(viewer, "Viewer", "Can view points and statuses.")
+Person(participant, "Participant", "Earns and manages own points.")
+Person(approver, "Approver", "Approves or rejects points.")
+
+System(pointsSystem, "Points Management System", "Manages points lifecycle and approvals.")
+
+System_Ext(authSystem, "Authentication System", "Handles login and user identity.")
+
+Rel(viewer, pointsSystem, "Views points and statuses")
+Rel(participant, pointsSystem, "Creates / tracks points")
+Rel(approver, pointsSystem, "Approves / rejects points")
+
+Rel(pointsSystem, authSystem, "Authenticates users")
+
+@enduml
