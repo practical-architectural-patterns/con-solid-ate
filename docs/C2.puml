@@ -1,0 +1,25 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(p1, "Participant", "Standard User")
+Person(p2, "Operator", "Admin User")
+
+System_Boundary(c1, "conSOLIDate App Ecosystem") {
+    Container(ui_app, "Frontend Portal", "React, TypeScript", "Responsive UI for point management.")
+    Container(auth_proxy, "OAuth2 / Security Gateway", "Spring Cloud Gateway", "Handles JWT validation and OAuth2 authorization flows.")
+    Container(api_logic, "Ledger API Service", "Java, Spring Boot", "Processes business rules and transactional logic.")
+    ContainerDb(db_ledger, "Persistence Layer", "PostgreSQL", "Stores encrypted user data and point ledger history.")
+}
+
+System_Ext(idp, "External IDP", "Auth0 / Okta", "Provides OAuth2 tokens and identity management.")
+
+' Horizontal flow connections
+Rel(p1, ui_app, "Accesses via HTTPS")
+Rel(p2, ui_app, "Accesses via HTTPS")
+
+Rel(ui_app, idp, "Redirects for Auth", "OIDC/OAuth2")
+Rel(ui_app, auth_proxy, "API Calls with Bearer Token", "JSON/HTTPS")
+
+Rel(auth_proxy, api_logic, "Routes authorized requests", "Internal Protocol")
+Rel(api_logic, db_ledger, "Reads/Writes", "JDBC/SSL")
+@enduml
