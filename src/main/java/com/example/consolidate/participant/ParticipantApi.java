@@ -5,21 +5,21 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/participants")
-public class ParticipantApi {
+class ParticipantApi {
 
-    private final ParticipantManager manager;
+    private final ParticipantRepository repository;
 
-    public ParticipantApi(ParticipantManager manager) {
-        this.manager = manager;
+    public ParticipantApi(ParticipantRepository repository) {
+        this.repository = repository;
     }
 
     @PostMapping
     public Participant create(@RequestBody Participant p) {
-        return manager.register(p);
+        return repository.save(p);
     }
 
     @GetMapping
     public List<Participant> list() {
-        return manager.fetch();
+        return repository.findAll();
     }
 }

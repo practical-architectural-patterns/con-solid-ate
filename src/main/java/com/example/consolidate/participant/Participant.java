@@ -3,7 +3,7 @@ package com.example.consolidate.participant;
 import jakarta.persistence.*;
 
 @Entity
-public class Participant {
+class Participant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long pid;

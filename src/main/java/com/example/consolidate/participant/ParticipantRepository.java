@@ -3,5 +3,5 @@ package com.example.consolidate.participant;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ParticipantRepository extends JpaRepository<Participant, Long> {
+interface ParticipantRepository extends JpaRepository<Participant, Long> {
 }
