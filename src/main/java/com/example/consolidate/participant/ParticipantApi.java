@@ -7,19 +7,19 @@ import java.util.List;
 @RequestMapping("/participants")
 class ParticipantApi {
 
-    private final ParticipantRepository repository;
+    private final ParticipantService participantService;
 
-    public ParticipantApi(ParticipantRepository repository) {
-        this.repository = repository;
+    ParticipantApi(ParticipantService participantService) {
+        this.participantService = participantService;
     }
 
     @PostMapping
-    public Participant create(@RequestBody Participant p) {
-        return repository.save(p);
+    public Participant create(@RequestBody Participant participant) {
+        return participantService.register(participant);
     }
 
     @GetMapping
     public List<Participant> list() {
-        return repository.findAll();
+        return participantService.findAll();
     }
 }
