@@ -14,7 +14,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -89,16 +88,20 @@ class PointsAccountServiceTest {
     }
 
     @Test
-    void should_NotUpdateBalance_When_AddingPoints() {
+    void should_UpdateBalance_When_AddingPoints() {
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
         when(pointsRepository.save(any(Points.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        // after saving, recalculateBalance will query history; stub history to include the new entry
+        when(pointsRepository.findByAccountId(pointsAccount.getId()))
+                .thenReturn(List.of(new Points(pointsAccount.getId(), QUIZ_AMOUNT, QUIZ_REASON)));
+        when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
         pointsAccountService.addPoints(PARTICIPANT_PID, QUIZ_AMOUNT, QUIZ_REASON);
 
-        assertThat(pointsAccount.getBalance()).isZero();
-        verify(pointsAccountRepository, never()).save(any(PointsAccount.class));
+        assertThat(pointsAccount.getBalance()).isEqualTo(QUIZ_AMOUNT);
+        verify(pointsAccountRepository).save(pointsAccount);
     }
 
     @Test
@@ -142,11 +145,13 @@ class PointsAccountServiceTest {
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
         when(pointsRepository.findByAccountId(pointsAccount.getId())).thenReturn(pointsHistory);
+        when(pointsRepository.save(any(Points.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
-        PointsAccount recalculatedAccount = pointsAccountService.recalculateBalance(PARTICIPANT_PID);
+        // trigger recalculation via addPoints (which calls recalculateBalance internally)
+        pointsAccountService.addPoints(PARTICIPANT_PID, 0, "noop");
 
-        assertThat(recalculatedAccount.getBalance()).isEqualTo(QUIZ_AMOUNT + TASK_AMOUNT + PENALTY_AMOUNT);
+        assertThat(pointsAccount.getBalance()).isEqualTo(QUIZ_AMOUNT + TASK_AMOUNT + PENALTY_AMOUNT);
     }
 
     @Test
@@ -154,11 +159,12 @@ class PointsAccountServiceTest {
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
         when(pointsRepository.findByAccountId(pointsAccount.getId())).thenReturn(List.of());
+        when(pointsRepository.save(any(Points.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
-        PointsAccount recalculatedAccount = pointsAccountService.recalculateBalance(PARTICIPANT_PID);
+        pointsAccountService.addPoints(PARTICIPANT_PID, 0, "noop");
 
-        assertThat(recalculatedAccount.getBalance()).isZero();
+        assertThat(pointsAccount.getBalance()).isZero();
     }
 
     @Test
@@ -168,7 +174,8 @@ class PointsAccountServiceTest {
         when(pointsRepository.findByAccountId(pointsAccount.getId())).thenReturn(List.of());
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
-        pointsAccountService.recalculateBalance(PARTICIPANT_PID);
+        when(pointsRepository.save(any(Points.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        pointsAccountService.addPoints(PARTICIPANT_PID, 0, "noop");
 
         verify(pointsAccountRepository).save(pointsAccount);
     }
@@ -178,7 +185,7 @@ class PointsAccountServiceTest {
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> pointsAccountService.recalculateBalance(PARTICIPANT_PID))
+        assertThatThrownBy(() -> pointsAccountService.addPoints(PARTICIPANT_PID, 0, "noop"))
                 .isInstanceOf(PointsAccountNotFoundException.class);
         verifyNoInteractions(pointsRepository);
     }

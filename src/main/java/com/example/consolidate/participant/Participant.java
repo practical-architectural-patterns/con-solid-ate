@@ -1,13 +1,19 @@
 package com.example.consolidate.participant;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 class Participant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long pid;
+
+
     private String fullName;
+    @NotBlank
+    @Email
     private String contactMail;
 
     public Long getPid() { return pid; }

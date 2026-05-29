@@ -31,7 +31,9 @@ class PointsAccountService {
     @Transactional
     Points addPoints(Long participantPid, int amount, String reason) {
         PointsAccount pointsAccount = findByParticipant(participantPid);
-        return pointsRepository.save(pointsAccount.createPointsEntry(amount, reason));
+        Points saved = pointsRepository.save(pointsAccount.createPointsEntry(amount, reason));
+        recalculateBalance(participantPid);
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -40,11 +42,17 @@ class PointsAccountService {
         return pointsRepository.findByAccountId(pointsAccount.getId());
     }
 
-    @Transactional
-    PointsAccount recalculateBalance(Long participantPid) {
+    private void recalculateBalance(Long participantPid) {
         PointsAccount pointsAccount = findByParticipant(participantPid);
         List<Points> pointsHistory = pointsRepository.findByAccountId(pointsAccount.getId());
         pointsAccount.recalculateBalanceFrom(pointsHistory);
+        pointsAccountRepository.save(pointsAccount);
+    }
+
+    @Transactional
+    PointsAccount updateBalance(Long participantPid, int newBalance) {
+        PointsAccount pointsAccount = findByParticipant(participantPid);
+        pointsAccount.setBalance(newBalance);
         return pointsAccountRepository.save(pointsAccount);
     }
 }

@@ -21,8 +21,9 @@ class PointsAccountApi {
     }
 
     @PutMapping
-    public PointsAccountResponse recalculateBalance(@PathVariable("id") Long participantPid) {
-        return PointsAccountResponse.from(pointsAccountService.recalculateBalance(participantPid));
+    public PointsAccountResponse updateAccount(@PathVariable("id") Long participantPid,
+                                               @RequestBody PointsAccountUpdate update) {
+        return PointsAccountResponse.from(pointsAccountService.updateBalance(participantPid, update.balance()));
     }
 
     @PostMapping("/points")

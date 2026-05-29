@@ -31,6 +31,10 @@ class PointsAccount {
         this.balance = pointsHistory.stream().mapToInt(Points::getAmount).sum();
     }
 
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
     public Long getId() {
         return id;
     }
