@@ -94,7 +94,7 @@ class PointsAccountServiceTest {
         when(pointsRepository.save(any(Points.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         // after saving, recalculateBalance will query history; stub history to include the new entry
-        when(pointsRepository.findByAccountId(pointsAccount.getId()))
+        when(pointsRepository.findByAccountIdOrderByIdAsc(pointsAccount.getId()))
                 .thenReturn(List.of(new Points(pointsAccount.getId(), QUIZ_AMOUNT, QUIZ_REASON)));
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
@@ -119,7 +119,7 @@ class PointsAccountServiceTest {
         Points pointsEntry = new Points(pointsAccount.getId(), QUIZ_AMOUNT, QUIZ_REASON);
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
-        when(pointsRepository.findByAccountId(pointsAccount.getId()))
+        when(pointsRepository.findByAccountIdOrderByIdAsc(pointsAccount.getId()))
                 .thenReturn(List.of(pointsEntry));
 
         assertThat(pointsAccountService.getPointsHistory(PARTICIPANT_PID)).containsExactly(pointsEntry);
@@ -144,7 +144,7 @@ class PointsAccountServiceTest {
         );
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
-        when(pointsRepository.findByAccountId(pointsAccount.getId())).thenReturn(pointsHistory);
+        when(pointsRepository.findByAccountIdOrderByIdAsc(pointsAccount.getId())).thenReturn(pointsHistory);
         when(pointsRepository.save(any(Points.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
@@ -158,7 +158,7 @@ class PointsAccountServiceTest {
     void should_SetBalanceToZero_When_RecalculatingBalanceWithEmptyHistory() {
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
-        when(pointsRepository.findByAccountId(pointsAccount.getId())).thenReturn(List.of());
+        when(pointsRepository.findByAccountIdOrderByIdAsc(pointsAccount.getId())).thenReturn(List.of());
         when(pointsRepository.save(any(Points.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
@@ -171,7 +171,7 @@ class PointsAccountServiceTest {
     void should_PersistAccount_When_RecalculatingBalance() {
         when(pointsAccountRepository.findByParticipantPid(PARTICIPANT_PID))
                 .thenReturn(Optional.of(pointsAccount));
-        when(pointsRepository.findByAccountId(pointsAccount.getId())).thenReturn(List.of());
+        when(pointsRepository.findByAccountIdOrderByIdAsc(pointsAccount.getId())).thenReturn(List.of());
         when(pointsAccountRepository.save(pointsAccount)).thenReturn(pointsAccount);
 
         when(pointsRepository.save(any(Points.class))).thenAnswer(invocation -> invocation.getArgument(0));
