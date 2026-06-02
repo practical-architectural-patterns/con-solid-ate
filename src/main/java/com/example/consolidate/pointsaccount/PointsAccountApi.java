@@ -1,7 +1,9 @@
 package com.example.consolidate.pointsaccount;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 
 import java.util.List;
 
@@ -37,9 +39,24 @@ class PointsAccountApi {
     }
 
     @GetMapping("/points")
-    public List<PointsResponse> getPointsHistory(@PathVariable("id") Long participantPid) {
-        return pointsAccountService.getPointsHistory(participantPid).stream()
+    public ResponseEntity<List<PointsResponse>> getPointsHistory(
+            @PathVariable("id") Long participantPid,
+            WebRequest request) {
+
+        List<PointsResponse> history = pointsAccountService.getPointsHistory(participantPid).stream()
                 .map(PointsResponse::from)
                 .toList();
+
+        // Deterministyczny ETag bazujący na zawartości listy (jej hashCode)
+        String etag = "\"" + Integer.toHexString(history.hashCode()) + "\"";
+
+        // Jeśli nagłówek If-None-Match zgadza się z ETagiem, zwraca 304 Not Modified
+        if (request.checkNotModified(etag)) {
+            return null;
+        }
+
+        return ResponseEntity.ok()
+                .eTag(etag)
+                .body(history);
     }
 }
