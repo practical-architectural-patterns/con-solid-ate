@@ -1,7 +1,9 @@
 package com.example.consolidate.pointsaccount;
 
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 
 import java.util.List;
 
@@ -37,9 +39,16 @@ class PointsAccountApi {
     }
 
     @GetMapping("/points")
-    public List<PointsResponse> getPointsHistory(@PathVariable("id") Long participantPid) {
-        return pointsAccountService.getPointsHistory(participantPid).stream()
-                .map(PointsResponse::from)
-                .toList();
+    public ResponseEntity<List<PointsResponse>> getPointsHistory(@PathVariable("id") Long participantPid,
+                                                                  WebRequest webRequest) {
+        String eTag = pointsAccountService.computePointsHistoryETag(participantPid);
+        if (webRequest.checkNotModified(eTag)) {
+            return null;
+        }
+        return ResponseEntity.ok()
+                .eTag(eTag)
+                .body(pointsAccountService.getPointsHistory(participantPid).stream()
+                        .map(PointsResponse::from)
+                        .toList());
     }
 }

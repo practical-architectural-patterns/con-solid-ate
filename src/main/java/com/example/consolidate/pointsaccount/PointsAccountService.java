@@ -42,6 +42,14 @@ class PointsAccountService {
         return pointsRepository.findByAccountId(pointsAccount.getId());
     }
 
+    @Transactional(readOnly = true)
+    String computePointsHistoryETag(Long participantPid) {
+        PointsAccount account = findByParticipant(participantPid);
+        long count = pointsRepository.countByAccountId(account.getId());
+        long maxId = pointsRepository.maxIdByAccountId(account.getId());
+        return count + "-" + maxId;
+    }
+
     private void recalculateBalance(Long participantPid) {
         PointsAccount pointsAccount = findByParticipant(participantPid);
         List<Points> pointsHistory = pointsRepository.findByAccountId(pointsAccount.getId());
