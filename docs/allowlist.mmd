@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor Portal as Klient
+    participant Auth as Serwis Autoryzacji (np. OAuth2)
+    participant API as Serwer Con-SOLID-ate
+    participant DB as Baza Danych
+
+    Note over Portal, Auth: 1. Pobranie tokenu
+    Portal->>Auth: POST /oauth/token (client_id, client_secret, grant_type=client_credentials)
+    Auth-->>Portal: Zwrócenie tokenu (JWT ze scopem 'points:read')
+
+    Note over Portal, API: 2. Zapytanie o historię punktów
+    Portal->>API: GET /participants/{id}/points (Nagłówek: Authorization: Bearer <JWT>)
+
+    Note over API: 3. Walidacja tokenu przez Spring Security<br/>(Sprawdzenie podpisu kluczem publicznym i weryfikacja scope)
+    alt Token nieaktywny, podpis niepoprawny lub brak uprawnienia 'points:read'
+        API-->>Portal: 401 Unauthorized / 403 Forbidden
+    else Token poprawny i posiada wymagany scope
+        API->>DB: Pobranie historii punktów dla danego uczestnika
+        DB-->>API: Lista rekordów (Points)
+        API-->>Portal: 200 OK (Lista PointsResponse)
+    end
