@@ -1,0 +1,58 @@
+sequenceDiagram
+autonumber
+
+    participant ADM as Administrator
+    participant PK as Portal Kandydata<br/>(API Client)
+    participant SEC as Spring Security Filter
+    participant API as Con-SOLID-ate API
+    participant DB as Database
+
+    rect gray
+        Note over ADM,DB: Faza 1 — Admin rejestruje klienta API
+
+        ADM->>+API: POST /api-clients<br/>X-Admin-Key: •••••<br/>{ "clientName": "portal-kandydata" }
+        API->>API: Weryfikacja klucza admina<br/>Generowanie clientId + clientSecret<br/>Zapis SHA-256(clientSecret) do bazy
+        API->>+DB: INSERT INTO api_clients<br/>(client_id, name, hashed_secret, active=true)
+        DB-->>-API: OK
+        API-->>-ADM: 201 Created<br/>{ "clientId": "k7m...", "clientSecret": "9xQ..." }
+    end
+
+    rect gray
+        Note over PK,DB: Faza 2 — Logowanie i uzyskanie JWT
+
+        PK->>+API: POST /api-clients/login<br/>{ "clientId": "k7m...", "clientSecret": "9xQ..." }
+        API->>API: SHA-256(clientSecret)
+        API->>+DB: SELECT * FROM api_clients<br/>WHERE client_id = ? AND hashed_secret = ? AND active = true
+        DB-->>-API: ApiClient
+        API->>API: Generowanie JWT
+        API-->>-PK: 200 OK { "token": "eyJ...", "expiresIn": 3600 }
+    end
+
+    rect gray
+        Note over PK,DB: Faza 3 — Autoryzowany dostęp do historii punktów
+
+        PK->>+SEC: GET /participants/{id}/points-account/points<br/>Authorization: Bearer eyJ...
+        SEC->>SEC: Weryfikacja JWT
+        SEC->>+API: GET /participants/{id}/points-account/points
+        API->>+DB: SELECT * FROM points WHERE account_id = ?
+        DB-->>-API: List<Points>
+        API-->>-SEC: 200 OK
+        SEC-->>-PK: 200 OK [{ id, amount, reason, createdAt }]
+    end
+
+    rect gray
+        Note over PK,API: Nieprawidłowe dane logowania
+
+        PK->>+API: POST /api-clients/login<br/>{ "clientId": "k7m...", "clientSecret": "złedane" }
+        API->>+DB: SELECT * FROM api_clients<br/>WHERE client_id = ? AND hashed_secret = ?
+        DB-->>-API: []
+        API-->>-PK: 401 Unauthorized
+    end
+
+    rect gray
+        Note over PK,SEC: Brak JWT, JWT nieważny lub wygasły
+
+        PK->>+SEC: GET /participants/{id}/points-account/points<br/>(brak / błędny / wygasły token)
+        SEC->>SEC: Weryfikacja negatywna
+        SEC-->>-PK: 401 Unauthorized
+    end
