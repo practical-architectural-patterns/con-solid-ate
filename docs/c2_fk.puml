@@ -1,0 +1,21 @@
+@startuml
+
+title con-solid-ate - C2 Container Diagram
+
+skinparam componentStyle rectangle
+
+node "con-solid-ate System" {
+
+    component "Single-Page App\nProvides all Con-SOLID-Ate functionality\nto customers via web browser" as SPA
+
+    component "API Application\nProvides solid points functionality via API" as API
+
+    database "PostgreSQL Database\nStores SOLID points for program participants" as DB
+}
+
+' Internal interactions
+SPA --> API : Makes calls to
+API --> DB : read/write SOLID points
+
+
+@enduml
