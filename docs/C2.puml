@@ -1,0 +1,29 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Points Management System - Container Diagram
+
+Person(viewer, "Viewer")
+Person(participant, "Participant")
+Person(approver, "Approver")
+
+System_Boundary(pointsSystem, "Points Management System") {
+
+    Container(webApp, "Web Application", "React / Angular", "UI for all user roles")
+    Container(api, "Backend API", "Java / Spring Boot", "Handles business logic")
+    Container(db, "Database", "PostgreSQL", "Stores users, points, statuses")
+    Container(auth, "Auth Module", "OAuth2 / JWT", "Authentication & authorization")
+}
+
+System_Ext(authSystem, "Authentication System", "External identity provider")
+
+Rel(viewer, webApp, "Uses")
+Rel(participant, webApp, "Uses")
+Rel(approver, webApp, "Uses")
+
+Rel(webApp, api, "Calls REST API")
+Rel(api, db, "Reads/Writes")
+Rel(api, auth, "Validates users")
+Rel(api, authSystem, "Delegates authentication")
+
+@enduml
