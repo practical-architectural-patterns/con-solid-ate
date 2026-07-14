@@ -1,15 +1,19 @@
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
 
-title CRM Order Management System - Context Diagram
+' Layout tweak for a wider profile
 
-Person(customer, "Customer", "Places orders and tracks them.")
-System_Ext(paymentGateway, "Payment Gateway", "Processes payment for orders.")
-System_Ext(supplierSystem, "Supplier System", "External supplier management system.")
-System(CRMSystem, "CRM Order Management System", "Manages customer orders and inventory.")
+Person(user_p, "System Participant", "End-user engaged in point-based loyalty activities.")
+Person(staff_p, "Platform Operator", "Administrative staff managing ledger entries and corrections.")
+Person(audit_p, "Compliance Auditor", "Internal/External stakeholder auditing system integrity.")
 
-Rel_D(customer, CRMSystem, "Places and tracks orders", $tags="sync")
-Rel_R(CRMSystem, paymentGateway, "Processes payment", $tags="sync")
-Rel_D(CRMSystem, supplierSystem, "Sends order details", $tags="sync")
+System(consolidate, "conSOLIDate App", "Core engine for point aggregation, balance tracking, and ledger history.")
 
+System_Ext(auth_provider, "Identity Provider", "External OAuth2/OIDC service for user authentication.")
+
+Rel(user_p, consolidate, "Views rewards and profile data")
+Rel(staff_p, consolidate, "Adjusts balances and manages users")
+Rel(audit_p, consolidate, "Extracts reports for auditing")
+
+Rel_R(consolidate, auth_provider, "Validates sessions/tokens")
 @enduml
